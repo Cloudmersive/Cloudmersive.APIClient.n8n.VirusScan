@@ -1,18 +1,19 @@
-import type { IExecuteFunctions } from 'n8n-core';
-import {
+import type {
 	IDataObject,
+	IExecuteFunctions,
 	INodeExecutionData,
 	INodeProperties,
 	INodeType,
 	INodeTypeDescription,
-	NodeApiError,
+	JsonObject,
+	IHttpRequestOptions,
 } from 'n8n-workflow';
+import { NodeApiError, NodeConnectionType } from 'n8n-workflow';
 
 import {
 	applyAdvancedHeaders,
 	buildFormFile,
 	getBaseUrl,
-	joinOptionsHeader,
 } from './GenericFunctions';
 
 export class CloudmersiveVirusScanApi implements INodeType {
@@ -23,21 +24,12 @@ export class CloudmersiveVirusScanApi implements INodeType {
 		group: ['transform'],
 		version: 1,
 		description: 'Scan files, websites, and cloud storage for malware via Cloudmersive',
-		defaults: {
-			name: 'Cloudmersive Virus Scan',
-		},
-		inputs: ['main'],
-		outputs: ['main'],
-		credentials: [
-			{
-				name: 'cloudmersiveApi',
-				required: true,
-			},
-		],
+		defaults: { name: 'Cloudmersive Virus Scan' },
+		inputs: [NodeConnectionType.Main],
+		outputs: [NodeConnectionType.Main],
+		credentials: [{ name: 'cloudmersiveApi', required: true }],
 		properties: [
-			/* -------------------------------------------------------------------------- */
-			/*                                  Resource                                  */
-			/* -------------------------------------------------------------------------- */
+			/* Resource */
 			{
 				displayName: 'Resource',
 				name: 'resource',
@@ -55,9 +47,7 @@ export class CloudmersiveVirusScanApi implements INodeType {
 				noDataExpression: true,
 			},
 
-			/* -------------------------------------------------------------------------- */
-			/*                                 Operation                                  */
-			/* -------------------------------------------------------------------------- */
+			/* Operation per resource */
 			{
 				displayName: 'Operation',
 				name: 'operation',
@@ -74,9 +64,7 @@ export class CloudmersiveVirusScanApi implements INodeType {
 				name: 'operation',
 				type: 'options',
 				displayOptions: { show: { resource: ['website'] } },
-				options: [
-					{ name: 'Scan', value: 'scan', description: 'Scan a website for malicious content and threats' },
-				],
+				options: [{ name: 'Scan', value: 'scan', description: 'Scan a website for malicious content and threats' }],
 				default: 'scan',
 			},
 			{
@@ -129,15 +117,11 @@ export class CloudmersiveVirusScanApi implements INodeType {
 				name: 'operation',
 				type: 'options',
 				displayOptions: { show: { resource: ['batchJob'] } },
-				options: [
-					{ name: 'Get Status', value: 'getStatus', description: 'Get the status and result of a scan batch job' },
-				],
+				options: [{ name: 'Get Status', value: 'getStatus', description: 'Get the status and result of a scan batch job' }],
 				default: 'getStatus',
 			},
 
-			/* -------------------------------------------------------------------------- */
-			/*                                    FILE                                    */
-			/* -------------------------------------------------------------------------- */
+			/* FILE */
 			{
 				displayName: 'Binary Property Name',
 				name: 'binaryPropertyName',
@@ -163,13 +147,15 @@ export class CloudmersiveVirusScanApi implements INodeType {
 				type: 'collection',
 				placeholder: 'Add options',
 				displayOptions: {
-					show: [
-						{ resource: ['file'], operation: ['scanAdvanced'] },
-						{ resource: ['azureBlob'], operation: ['scanAdvanced', 'scanAdvancedBatchJob'] },
-						{ resource: ['awsS3'], operation: ['scanAdvanced'] },
-						{ resource: ['gcpStorage'], operation: ['scanAdvanced'] },
-						{ resource: ['sharepointSite'], operation: ['scanAdvanced'] },
-					],
+					show: {
+						'@or': [
+							{ resource: ['file'], operation: ['scanAdvanced'] },
+							{ resource: ['azureBlob'], operation: ['scanAdvanced', 'scanAdvancedBatchJob'] },
+							{ resource: ['awsS3'], operation: ['scanAdvanced'] },
+							{ resource: ['gcpStorage'], operation: ['scanAdvanced'] },
+							{ resource: ['sharepointSite'], operation: ['scanAdvanced'] }
+						],
+					},
 				},
 				default: {},
 				options: [
@@ -208,9 +194,7 @@ export class CloudmersiveVirusScanApi implements INodeType {
 				],
 			},
 
-			/* -------------------------------------------------------------------------- */
-			/*                                   WEBSITE                                  */
-			/* -------------------------------------------------------------------------- */
+			/* WEBSITE */
 			{
 				displayName: 'URL',
 				name: 'url',
@@ -222,111 +206,22 @@ export class CloudmersiveVirusScanApi implements INodeType {
 				displayOptions: { show: { resource: ['website'], operation: ['scan'] } },
 			},
 
-			/* -------------------------------------------------------------------------- */
-			/*                                AZURE BLOB                                  */
-			/* -------------------------------------------------------------------------- */
-			{
-				displayName: 'Connection String',
-				name: 'connectionString',
-				type: 'string',
-				default: '',
-				required: true,
-				displayOptions: { show: { resource: ['azureBlob'] } },
-				description: 'Azure Storage Account connection string',
-			},
-			{
-				displayName: 'Container Name',
-				name: 'containerName',
-				type: 'string',
-				default: '',
-				required: true,
-				displayOptions: { show: { resource: ['azureBlob'] } },
-			},
-			{
-				displayName: 'Blob Path',
-				name: 'blobPath',
-				type: 'string',
-				default: '',
-				required: true,
-				displayOptions: { show: { resource: ['azureBlob'] } },
-				description: 'e.g. "hello.pdf" or "/folder/subfolder/world.pdf"',
-			},
+			/* AZURE BLOB */
+			{ displayName: 'Connection String', name: 'connectionString', type: 'string', default: '', required: true, displayOptions: { show: { resource: ['azureBlob'] } } },
+			{ displayName: 'Container Name', name: 'containerName', type: 'string', default: '', required: true, displayOptions: { show: { resource: ['azureBlob'] } } },
+			{ displayName: 'Blob Path', name: 'blobPath', type: 'string', default: '', required: true, displayOptions: { show: { resource: ['azureBlob'] } }, description: 'e.g. "hello.pdf" or "/folder/subfolder/world.pdf"' },
 
-			/* -------------------------------------------------------------------------- */
-			/*                                   AWS S3                                   */
-			/* -------------------------------------------------------------------------- */
-			{
-				displayName: 'Access Key',
-				name: 'accessKey',
-				type: 'string',
-				default: '',
-				required: true,
-				displayOptions: { show: { resource: ['awsS3'] } },
-			},
-			{
-				displayName: 'Secret Key',
-				name: 'secretKey',
-				type: 'string',
-				default: '',
-				typeOptions: { password: true },
-				required: true,
-				displayOptions: { show: { resource: ['awsS3'] } },
-			},
-			{
-				displayName: 'Bucket Region',
-				name: 'bucketRegion',
-				type: 'string',
-				default: '',
-				required: true,
-				placeholder: 'us-east-1',
-				displayOptions: { show: { resource: ['awsS3'] } },
-			},
-			{
-				displayName: 'Bucket Name',
-				name: 'bucketName',
-				type: 'string',
-				default: '',
-				required: true,
-				displayOptions: { show: { resource: ['awsS3'] } },
-			},
-			{
-				displayName: 'Key Name',
-				name: 'keyName',
-				type: 'string',
-				default: '',
-				required: true,
-				displayOptions: { show: { resource: ['awsS3'] } },
-				description: 'S3 object key (file name). Use base64: prefix if Unicode.',
-			},
-			{
-				displayName: 'Role ARN',
-				name: 'roleArn',
-				type: 'string',
-				default: '',
-				displayOptions: { show: { resource: ['awsS3'] } },
-				description: 'Optional: STS role ARN',
-			},
+			/* AWS S3 */
+			{ displayName: 'Access Key', name: 'accessKey', type: 'string', default: '', required: true, displayOptions: { show: { resource: ['awsS3'] } } },
+			{ displayName: 'Secret Key', name: 'secretKey', type: 'string', default: '', typeOptions: { password: true }, required: true, displayOptions: { show: { resource: ['awsS3'] } } },
+			{ displayName: 'Bucket Region', name: 'bucketRegion', type: 'string', default: '', required: true, placeholder: 'us-east-1', displayOptions: { show: { resource: ['awsS3'] } } },
+			{ displayName: 'Bucket Name', name: 'bucketName', type: 'string', default: '', required: true, displayOptions: { show: { resource: ['awsS3'] } } },
+			{ displayName: 'Key Name', name: 'keyName', type: 'string', default: '', required: true, displayOptions: { show: { resource: ['awsS3'] } }, description: 'S3 object key (file name). Use base64: prefix if Unicode.' },
+			{ displayName: 'Role ARN', name: 'roleArn', type: 'string', default: '', displayOptions: { show: { resource: ['awsS3'] } }, description: 'Optional: STS role ARN' },
 
-			/* -------------------------------------------------------------------------- */
-			/*                                 GCP STORAGE                                */
-			/* -------------------------------------------------------------------------- */
-			{
-				displayName: 'Bucket Name',
-				name: 'gcpBucketName',
-				type: 'string',
-				default: '',
-				required: true,
-				displayOptions: { show: { resource: ['gcpStorage'] } },
-			},
-			{
-				displayName: 'Object Name',
-				name: 'gcpObjectName',
-				type: 'string',
-				default: '',
-				required: true,
-				displayOptions: { show: { resource: ['gcpStorage'] } },
-				description: 'Use base64: prefix if Unicode in object name',
-			},
+			/* GCP STORAGE */
+			{ displayName: 'Bucket Name', name: 'gcpBucketName', type: 'string', default: '', required: true, displayOptions: { show: { resource: ['gcpStorage'] } } },
+			{ displayName: 'Object Name', name: 'gcpObjectName', type: 'string', default: '', required: true, displayOptions: { show: { resource: ['gcpStorage'] } }, description: 'Use base64: prefix if Unicode in object name' },
 			{
 				displayName: 'JSON Credential (Binary)',
 				name: 'jsonCredentialBinaryPropertyName',
@@ -338,59 +233,18 @@ export class CloudmersiveVirusScanApi implements INodeType {
 				description: 'Binary property name containing the GCP Service Account JSON file',
 			},
 
-			/* -------------------------------------------------------------------------- */
-			/*                            SHAREPOINT ONLINE SITE                           */
-			/* -------------------------------------------------------------------------- */
-			{
-				displayName: 'Client ID',
-				name: 'spClientID',
-				type: 'string',
-				default: '',
-				required: true,
-				displayOptions: { show: { resource: ['sharepointSite'] } },
-			},
-			{
-				displayName: 'Client Secret',
-				name: 'spClientSecret',
-				type: 'string',
-				default: '',
-				typeOptions: { password: true },
-				required: true,
-				displayOptions: { show: { resource: ['sharepointSite'] } },
-			},
-			{
-				displayName: 'SharePoint Domain',
-				name: 'spDomain',
-				type: 'string',
-				default: '',
-				required: true,
-				displayOptions: { show: { resource: ['sharepointSite'] } },
-				placeholder: 'mydomain.sharepoint.com',
-			},
-			{
-				displayName: 'Site ID (GUID)',
-				name: 'spSiteID',
-				type: 'string',
-				default: '',
-				required: true,
-				displayOptions: { show: { resource: ['sharepointSite'] } },
-			},
-			{
-				displayName: 'Tenant ID',
-				name: 'spTenantID',
-				type: 'string',
-				default: '',
-				displayOptions: { show: { resource: ['sharepointSite'] } },
-				description: 'Optional Azure AD Tenant ID',
-			},
+			/* SHAREPOINT ONLINE SITE */
+			{ displayName: 'Client ID', name: 'spClientID', type: 'string', default: '', required: true, displayOptions: { show: { resource: ['sharepointSite'] } } },
+			{ displayName: 'Client Secret', name: 'spClientSecret', type: 'string', default: '', typeOptions: { password: true }, required: true, displayOptions: { show: { resource: ['sharepointSite'] } } },
+			{ displayName: 'SharePoint Domain', name: 'spDomain', type: 'string', default: '', required: true, displayOptions: { show: { resource: ['sharepointSite'] } }, placeholder: 'mydomain.sharepoint.com' },
+			{ displayName: 'Site ID (GUID)', name: 'spSiteID', type: 'string', default: '', required: true, displayOptions: { show: { resource: ['sharepointSite'] } } },
+			{ displayName: 'Tenant ID', name: 'spTenantID', type: 'string', default: '', displayOptions: { show: { resource: ['sharepointSite'] } }, description: 'Optional Azure AD Tenant ID' },
 			{
 				displayName: 'File Path',
 				name: 'spFilePath',
 				type: 'string',
 				default: '',
-				displayOptions: {
-					show: { resource: ['sharepointSite'], operation: ['scan'] },
-				},
+				displayOptions: { show: { resource: ['sharepointSite'], operation: ['scan'] } },
 				required: true,
 				description: 'e.g. "hello.pdf" or "/folder/subfolder/world.pdf". Use base64: prefix for Unicode.',
 			},
@@ -399,9 +253,7 @@ export class CloudmersiveVirusScanApi implements INodeType {
 				name: 'spFilePathAdv',
 				type: 'string',
 				default: '',
-				displayOptions: {
-					show: { resource: ['sharepointSite'], operation: ['scanAdvanced'] },
-				},
+				displayOptions: { show: { resource: ['sharepointSite'], operation: ['scanAdvanced'] } },
 				description: 'Optional for advanced scan (or provide Item ID). Use base64: prefix for Unicode.',
 			},
 			{
@@ -409,15 +261,11 @@ export class CloudmersiveVirusScanApi implements INodeType {
 				name: 'spItemID',
 				type: 'string',
 				default: '',
-				displayOptions: {
-					show: { resource: ['sharepointSite'], operation: ['scanAdvanced'] },
-				},
+				displayOptions: { show: { resource: ['sharepointSite'], operation: ['scanAdvanced'] } },
 				description: 'Optional DriveItem ID (advanced scan)',
 			},
 
-			/* -------------------------------------------------------------------------- */
-			/*                                 BATCH JOB                                  */
-			/* -------------------------------------------------------------------------- */
+			/* BATCH JOB */
 			{
 				displayName: 'Async Job ID',
 				name: 'asyncJobID',
@@ -439,14 +287,14 @@ export class CloudmersiveVirusScanApi implements INodeType {
 				const resource = this.getNodeParameter('resource', i) as string;
 				const operation = this.getNodeParameter('operation', i) as string;
 
-				let method = 'POST';
+				let method: IHttpRequestOptions['method'] = 'POST';
 				let uriPath = '';
-				let headers: IDataObject = {};
-				let qs: IDataObject = {};
+				const headers: IDataObject = {};
+				const qs: IDataObject = {};
 				let body: IDataObject | undefined;
 				let formData: IDataObject | undefined;
 
-				/* ================================ FILE ================================= */
+				/* FILE */
 				if (resource === 'file') {
 					const binaryPropertyName = this.getNodeParameter('binaryPropertyName', i) as string;
 
@@ -457,7 +305,6 @@ export class CloudmersiveVirusScanApi implements INodeType {
 						uriPath = '/virus/scan/file/advanced';
 						formData = await buildFormFile.call(this, i, binaryPropertyName, 'inputFile');
 
-						// advanced file headers
 						const overrideFileName = this.getNodeParameter('overrideFileName', i, '') as string;
 						if (overrideFileName) headers['fileName'] = overrideFileName;
 
@@ -466,14 +313,14 @@ export class CloudmersiveVirusScanApi implements INodeType {
 					}
 				}
 
-				/* =============================== WEBSITE =============================== */
+				/* WEBSITE */
 				else if (resource === 'website') {
 					uriPath = '/virus/scan/website';
 					const url = this.getNodeParameter('url', i) as string;
 					body = { Url: url };
 				}
 
-				/* ============================= AZURE BLOB ============================== */
+				/* AZURE BLOB */
 				else if (resource === 'azureBlob') {
 					const connectionString = this.getNodeParameter('connectionString', i) as string;
 					const containerName = this.getNodeParameter('containerName', i) as string;
@@ -485,7 +332,7 @@ export class CloudmersiveVirusScanApi implements INodeType {
 
 					if (operation === 'scan') {
 						uriPath = '/virus/scan/cloud-storage/azure-blob/single';
-						formData = {}; // comply with multipart consumption
+						formData = {};
 					} else if (operation === 'scanAdvanced') {
 						uriPath = '/virus/scan/cloud-storage/azure-blob/single/advanced';
 						const adv = this.getNodeParameter('advancedControls', i, {}) as IDataObject;
@@ -499,7 +346,7 @@ export class CloudmersiveVirusScanApi implements INodeType {
 					}
 				}
 
-				/* ================================ AWS S3 ================================ */
+				/* AWS S3 */
 				else if (resource === 'awsS3') {
 					const accessKey = this.getNodeParameter('accessKey', i) as string;
 					const secretKey = this.getNodeParameter('secretKey', i) as string;
@@ -526,7 +373,7 @@ export class CloudmersiveVirusScanApi implements INodeType {
 					}
 				}
 
-				/* ============================== GCP STORAGE ============================= */
+				/* GCP STORAGE */
 				else if (resource === 'gcpStorage') {
 					const bucketName = this.getNodeParameter('gcpBucketName', i) as string;
 					const objectName = this.getNodeParameter('gcpObjectName', i) as string;
@@ -535,7 +382,6 @@ export class CloudmersiveVirusScanApi implements INodeType {
 					headers['bucketName'] = bucketName;
 					headers['objectName'] = objectName;
 
-					// Build multipart and attach JSON credential file
 					formData = await buildFormFile.call(this, i, jsonBinary, 'jsonCredentialFile');
 
 					if (operation === 'scan') {
@@ -547,7 +393,7 @@ export class CloudmersiveVirusScanApi implements INodeType {
 					}
 				}
 
-				/* ========================= SHAREPOINT ONLINE SITE ====================== */
+				/* SHAREPOINT ONLINE SITE */
 				else if (resource === 'sharepointSite') {
 					const clientID = this.getNodeParameter('spClientID', i) as string;
 					const clientSecret = this.getNodeParameter('spClientSecret', i) as string;
@@ -580,7 +426,7 @@ export class CloudmersiveVirusScanApi implements INodeType {
 					}
 				}
 
-				/* =============================== BATCH JOB ============================== */
+				/* BATCH JOB */
 				else if (resource === 'batchJob') {
 					if (operation === 'getStatus') {
 						method = 'GET';
@@ -590,22 +436,16 @@ export class CloudmersiveVirusScanApi implements INodeType {
 					}
 				}
 
-				/* ================================ REQUEST =============================== */
-				const options: IDataObject = {
+				const options: IHttpRequestOptions = {
 					method,
-					uri: `${baseUrl}${uriPath}`,
+					url: `${baseUrl}${uriPath}`,
 					json: true,
 				};
-
 				if (Object.keys(headers).length) options.headers = headers;
 				if (Object.keys(qs).length) options.qs = qs;
-				if (formData !== undefined) {
-					(options as any).formData = formData; // request lib field
-				} else if (body !== undefined) {
-					options.body = body;
-				}
+				if (formData !== undefined) (options as any).formData = formData;
+				else if (body !== undefined) options.body = body;
 
-				// Send (with auth header automatically injected by credentials)
 				const responseData = await this.helpers.requestWithAuthentication.call(
 					this,
 					'cloudmersiveApi',
@@ -614,7 +454,7 @@ export class CloudmersiveVirusScanApi implements INodeType {
 
 				returnData.push({ json: responseData as IDataObject });
 			} catch (error) {
-				throw new NodeApiError(this.getNode(), error);
+				throw new NodeApiError(this.getNode(), error as JsonObject);
 			}
 		}
 

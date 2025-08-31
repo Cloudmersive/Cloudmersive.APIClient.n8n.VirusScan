@@ -1,9 +1,6 @@
-import type { IExecuteFunctions } from 'n8n-core';
-import type { IDataObject } from 'n8n-workflow';
+import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
 
-/**
- * Resolve base URL from credentials (test vs. prod).
- */
+/** Resolve base URL from credentials (test vs. prod). */
 export async function getBaseUrl(this: IExecuteFunctions): Promise<string> {
 	const creds = (await this.getCredentials('cloudmersiveApi')) as IDataObject;
 	const env = (creds.environment ?? 'test') as string;
@@ -11,21 +8,14 @@ export async function getBaseUrl(this: IExecuteFunctions): Promise<string> {
 	return `https://${host}`;
 }
 
-/**
- * Convert an array of option flags into the comma-separated header string.
- */
+/** Convert an array of option flags into the comma-separated header string. */
 export function joinOptionsHeader(optionsArray?: string[] | null): string | undefined {
 	if (!optionsArray || optionsArray.length === 0) return undefined;
 	return optionsArray.join(',');
 }
 
-/**
- * Assign advanced boolean headers if present in the provided collection.
- */
-export function applyAdvancedHeaders(
-	headers: IDataObject,
-	adv: IDataObject = {},
-): void {
+/** Assign advanced boolean headers if present in the provided collection. */
+export function applyAdvancedHeaders(headers: IDataObject, adv: IDataObject = {}): void {
 	const keys = [
 		'allowExecutables',
 		'allowInvalidFiles',
@@ -43,18 +33,14 @@ export function applyAdvancedHeaders(
 			headers[k] = adv[k];
 		}
 	}
-	if (adv.restrictFileTypes) {
-		headers['restrictFileTypes'] = adv.restrictFileTypes;
-	}
+	if (adv.restrictFileTypes) headers['restrictFileTypes'] = adv.restrictFileTypes;
 	if (adv.optionsList && Array.isArray(adv.optionsList)) {
 		const joined = joinOptionsHeader(adv.optionsList as string[]);
 		if (joined) headers['options'] = joined;
 	}
 }
 
-/**
- * Build a multipart form-data field for uploading a binary file.
- */
+/** Build a multipart form-data field for uploading a binary file. */
 export async function buildFormFile(
 	this: IExecuteFunctions,
 	itemIndex: number,

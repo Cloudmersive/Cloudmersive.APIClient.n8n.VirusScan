@@ -1,12 +1,14 @@
 import {
 	ICredentialType,
 	INodeProperties,
+	IAuthenticateGeneric,
 } from 'n8n-workflow';
 
 export class CloudmersiveApi implements ICredentialType {
 	name = 'cloudmersiveApi';
 	displayName = 'Cloudmersive API';
 	documentationUrl = 'https://api.cloudmersive.com/docs/virus';
+
 	properties: INodeProperties[] = [
 		{
 			displayName: 'API Key',
@@ -28,11 +30,12 @@ export class CloudmersiveApi implements ICredentialType {
 		},
 	];
 
-	authenticate = {
-		type: 'headerAuth',
+	authenticate: IAuthenticateGeneric = {
+		type: 'generic',
 		properties: {
-			name: 'Apikey',
-			value: '={{$credentials.apiKey}}',
+			headers: {
+				Apikey: '={{$credentials.apiKey}}',
+			},
 		},
 	};
 }
