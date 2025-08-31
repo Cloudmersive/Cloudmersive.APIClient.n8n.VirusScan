@@ -1,0 +1,49 @@
+{
+    "name": "n8n-nodes-cloudmersive-virus-scan-api",
+    "version": "0.1.0",
+    "description": "n8n node to use Cloudmersive Virus Scan API (file, website, and cloud storage scans incl. advanced options & batch job status).",
+    "author": "Cloudmersive Community",
+    "license": "MIT",
+    "keywords": [
+      "n8n-nodes",
+      "n8n-community-node",
+      "n8n",
+      "cloudmersive",
+      "virus",
+      "malware",
+      "security",
+      "antivirus"
+    ],
+    "homepage": "https://www.cloudmersive.com/",
+    "repository": {
+      "type": "git",
+      "url": "https://example.com/your/repo.git"
+    },
+    "main": "dist/nodes/CloudmersiveVirusScanApi/CloudmersiveVirusScanApi.node.js",
+    "types": "dist/nodes/CloudmersiveVirusScanApi/CloudmersiveVirusScanApi.node.d.ts",
+    "scripts": {
+      "build": "tsc",
+      "prepublishOnly": "npm run build"
+    },
+    "engines": {
+      "node": ">=16"
+    },
+    "devDependencies": {
+      "n8n-core": "^1.26.0",
+      "n8n-workflow": "^1.26.0",
+      "ts-node": "^10.9.2",
+      "typescript": "^5.3.3"
+    },
+    "n8n": {
+      "nodes": [
+        "dist/nodes/CloudmersiveVirusScanApi/CloudmersiveVirusScanApi.node.js"
+      ],
+      "credentials": [
+        "dist/credentials/CloudmersiveApi.credentials.js"
+      ]
+    },
+    "files": [
+      "dist"
+    ]
+  }
+  
