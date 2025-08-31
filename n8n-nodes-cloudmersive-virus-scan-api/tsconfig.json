@@ -9,8 +9,13 @@
       "rootDir": ".",
       "esModuleInterop": true,
       "resolveJsonModule": true,
+      "skipLibCheck": true,
       "types": ["node", "n8n-workflow"]
     },
-    "include": ["nodes/**/*", "credentials/**/*"]
+    "include": [
+      "nodes/**/*",
+      "credentials/**/*",
+      "types/**/*.d.ts"
+    ]
   }
   

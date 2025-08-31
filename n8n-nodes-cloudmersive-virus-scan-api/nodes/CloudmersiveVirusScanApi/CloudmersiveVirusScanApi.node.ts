@@ -148,13 +148,8 @@ export class CloudmersiveVirusScanApi implements INodeType {
 				placeholder: 'Add options',
 				displayOptions: {
 					show: {
-						'@or': [
-							{ resource: ['file'], operation: ['scanAdvanced'] },
-							{ resource: ['azureBlob'], operation: ['scanAdvanced', 'scanAdvancedBatchJob'] },
-							{ resource: ['awsS3'], operation: ['scanAdvanced'] },
-							{ resource: ['gcpStorage'], operation: ['scanAdvanced'] },
-							{ resource: ['sharepointSite'], operation: ['scanAdvanced'] }
-						],
+						resource: ['file', 'azureBlob', 'awsS3', 'gcpStorage', 'sharepointSite'],
+						operation: ['scanAdvanced', 'scanAdvancedBatchJob'],
 					},
 				},
 				default: {},
