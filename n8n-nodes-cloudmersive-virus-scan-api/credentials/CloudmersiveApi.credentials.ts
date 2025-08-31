@@ -1,0 +1,38 @@
+import {
+	ICredentialType,
+	INodeProperties,
+} from 'n8n-workflow';
+
+export class CloudmersiveApi implements ICredentialType {
+	name = 'cloudmersiveApi';
+	displayName = 'Cloudmersive API';
+	documentationUrl = 'https://api.cloudmersive.com/docs/virus';
+	properties: INodeProperties[] = [
+		{
+			displayName: 'API Key',
+			name: 'apiKey',
+			type: 'string',
+			typeOptions: { password: true },
+			default: '',
+			description: 'Your Cloudmersive API Key',
+		},
+		{
+			displayName: 'Environment',
+			name: 'environment',
+			type: 'options',
+			default: 'test',
+			options: [
+				{ name: 'Test', value: 'test', description: 'https://testapi.cloudmersive.com' },
+				{ name: 'Production', value: 'prod', description: 'https://api.cloudmersive.com' },
+			],
+		},
+	];
+
+	authenticate = {
+		type: 'headerAuth',
+		properties: {
+			name: 'Apikey',
+			value: '={{$credentials.apiKey}}',
+		},
+	};
+}
