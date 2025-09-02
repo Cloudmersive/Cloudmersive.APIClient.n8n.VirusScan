@@ -6,7 +6,7 @@
     "license": "Apache-2.0",
     "keywords": [
         "n8n-nodes",
-        "n8n-community-node",
+        "n8n-community-node-package",
         "n8n",
         "cloudmersive",
         "virus",
@@ -23,10 +23,9 @@
     "types": "dist/nodes/CloudmersiveVirusScanApi/CloudmersiveVirusScanApi.node.d.ts",
     "scripts": {
         "build": "tsc",
-        "prepublishOnly": "npm run build",
         "lint": "eslint . --ext .ts",
         "lintfix": "eslint . --ext .ts --fix",
-        "prepublishOnly": "npm run lint"
+        "prepublishOnly": "npm run lint && npm run build"
     },
     "engines": {
         "node": ">=16"
