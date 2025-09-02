@@ -1,6 +1,6 @@
 # n8n-nodes-cloudmersive-virus-scan-api
 
-An n8n node for the **Cloudmersive Virus Scan API**. It covers:
+An n8n node for the **[Cloudmersive Virus Scan API](https://cloudmersive.com/virus-api)**. It covers:
 
 - **/virus/scan/file** (standard & advanced)
 - **/virus/scan/website**
