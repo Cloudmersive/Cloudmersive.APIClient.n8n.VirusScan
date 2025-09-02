@@ -1,6 +1,6 @@
 {
     "name": "n8n-nodes-cloudmersive-virus-scan-api",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "description": "n8n node to use Cloudmersive Virus Scan API (file, website, and cloud storage scans incl. advanced options & batch job status).",
     "author": "Cloudmersive",
     "license": "Apache-2.0",
@@ -28,7 +28,7 @@
         "prepublishOnly": "npm run lint && npm run build"
     },
     "engines": {
-        "node": ">=16"
+        "node": ">=18.18"
     },
     "devDependencies": {
         "@types/express": "^4.17.21",
