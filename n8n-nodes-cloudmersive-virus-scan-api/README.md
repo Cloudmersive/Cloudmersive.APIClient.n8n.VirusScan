@@ -1,6 +1,6 @@
 # n8n-nodes-cloudmersive-virus-scan-api
 
-An n8n community node for the **Cloudmersive Virus Scan API**. It covers:
+An n8n node for the **Cloudmersive Virus Scan API**. It covers:
 
 - **/virus/scan/file** (standard & advanced)
 - **/virus/scan/website**
@@ -11,7 +11,7 @@ An n8n community node for the **Cloudmersive Virus Scan API**. It covers:
 Uses **API Key** header: `Apikey`.
 
 ### Environments
-Choose **Test** (`https://testapi.cloudmersive.com`) or **Production** (`https://api.cloudmersive.com`) in credentials.
+Choose **Production** (`https://api.cloudmersive.com`), or a Private Cloud or Managed Instance endpoint in credentials.
 
 ### File uploads
 - For `/virus/scan/file` and `/virus/scan/file/advanced`: set `binaryPropertyName` (default: `data`) to the binary item that contains your file.
