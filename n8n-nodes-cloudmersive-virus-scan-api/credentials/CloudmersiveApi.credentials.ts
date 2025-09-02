@@ -24,8 +24,8 @@ export class CloudmersiveApi implements ICredentialType {
 			type: 'options',
 			default: 'test',
 			options: [
-				{ name: 'Test', value: 'test', description: 'https://testapi.cloudmersive.com' },
-				{ name: 'Production', value: 'prod', description: 'https://api.cloudmersive.com' },
+				{ name: 'Test', value: 'test', description: 'URL: https://testapi.cloudmersive.com' },
+				{ name: 'Production', value: 'prod', description: 'URL: https://api.cloudmersive.com' },
 			],
 		},
 	];
