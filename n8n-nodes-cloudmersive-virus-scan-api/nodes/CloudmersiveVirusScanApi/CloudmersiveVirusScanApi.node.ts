@@ -19,7 +19,7 @@ export class CloudmersiveVirusScanApi implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Cloudmersive Virus Scan',
 		name: 'cloudmersiveVirusScanApi',
-		icon: 'file:cloudmersive.png',
+		icon: 'file:cloudmersive.svg',
 		group: ['transform'],
 		version: 1,
 		description: 'Scan files, websites, and cloud storage for malware via Cloudmersive',
